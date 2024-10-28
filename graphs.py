@@ -99,25 +99,43 @@ def make_plot(
     xlabel,
     ylabel,
     fname,
-    fit=Fit.Linear
+    fit=Fit.Linear,
+    invert_xaxis=False,
 ):
     if fit is None:
         plt.scatter(x, y, c=colors)
         m, b = np.polyfit(x, y, 1)
         r = np.corrcoef(x, y)[0, 1]
         r2 = r * r
-        print("{}: m: {}, b: {}, R: {}, R^2: {}".format(fname, m, b, r, r2))
+        meanx = np.mean(x)
+        medx = np.median(x)
+        meany = np.mean(y)
+        medy = np.median(y)
+        print(
+            "{}: m: {}, b: {}, R: {}, R^2: {}, mux: {}, muy: {}, mex: {}, mey: {}"
+            .format(
+                fname, m, b, r, r2, meanx, meany, medx, medy))
     else:
         plt.scatter(x, y, c=colors)
         m, b = np.polyfit(x, y, 1)
         r = np.corrcoef(x, y)[0, 1]
         r2 = r * r
-        print("{}: m: {}, b: {}, R: {}, R^2: {}".format(fname, m, b, r, r2))
+        meanx = np.mean(x)
+        medx = np.median(x)
+        meany = np.mean(y)
+        medy = np.median(y)
+        print(
+            "{}: m: {}, b: {}, R: {}, R^2: {}, mux: {}, muy: {}, mex: {}, mey: {}"
+            .format(
+                fname, m, b, r, r2, meanx, meany, medx, medy))
         xlim = plt.gca().get_xlim()
         ylim = plt.gca().get_ylim()
         plt.plot(x, m * np.array(x) + b, c="black")
         plt.gca().set_xlim(xlim)
         plt.gca().set_ylim(ylim)
+
+    if invert_xaxis:
+        plt.gca().invert_xaxis()
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
@@ -263,26 +281,20 @@ make_plot(
     "glickovsapm.png"
 )
 
-plt.scatter(lbpos, tr, c=colors)
-# m, b = np.polyfit(lbpos, tr, 1)
-# plt.plot(lbpos, m * np.array(lbpos) + b, c="black")
-plt.xlabel("Leaderboard Position")
-plt.ylabel("TR")
-plt.title("TR vs. Leaderboard Position")
-legend = plt.legend(handles=handles, loc="lower right", title="Rank")
-legend.get_frame().set_edgecolor("black")
-plt.gca().invert_xaxis()
-plt.savefig("trvslbpos.png", dpi=200)
-plt.close()
+make_plot(
+    lbpos,
+    tr,
+    "Leaderboard Position",
+    "TR",
+    "trvslbpos.png",
+    invert_xaxis=True
+)
 
-plt.scatter(lbpos, glicko, c=colors)
-# m, b = np.polyfit(lbpos, glicko, 1)
-# plt.plot(lbpos, m * np.array(lbpos) + b, c="black")
-plt.xlabel("Leaderboard Position")
-plt.ylabel("Glicko")
-plt.title("Glicko vs. Leaderboard Position")
-legend = plt.legend(handles=handles, loc="lower right", title="Rank")
-legend.get_frame().set_edgecolor("black")
-plt.gca().invert_xaxis()
-plt.savefig("glickovslbpos.png", dpi=200)
-plt.close()
+make_plot(
+    lbpos,
+    glicko,
+    "Leaderboard Position",
+    "Glicko",
+    "glickovslbpos.png",
+    invert_xaxis=True
+)
