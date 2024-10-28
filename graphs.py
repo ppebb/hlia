@@ -66,6 +66,7 @@ def color_from_rank(rank):
 
 
 matplotlib.rcParams["figure.figsize"] = 9, 9
+matplotlib.rcParams["font.size"] = 16
 tr = collect(lambda a: a["league"]["tr"])
 apm = collect(lambda a: a["league"]["apm"])
 pps = collect(lambda a: a["league"]["pps"])
@@ -81,7 +82,7 @@ for i in range(0, len(gp)):
     wl.append(gw[i]/gp[i])
 app = []
 for i in range(0, len(apm)):
-    aps = apm[i] * 60
+    aps = apm[i] / 60
     app.append(aps/pps[i])
 
 ranks = collect(lambda a: a["league"]["rank"])
