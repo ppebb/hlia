@@ -1,9 +1,20 @@
 import json
+from enum import Enum
 from typing import List
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+
+
+class Fit(Enum):
+    Linear = 1
+    Quadratic = 2
+    Cubic = 3
+    Quartic = 4
+    Quintic = 5
+    Logarithmic = 6
+    Exponential = 7
 
 
 class Data:
@@ -82,13 +93,35 @@ for key in rank_to_color:
 handles.reverse()
 
 
-def make_plot(x, y, xlabel, ylabel, title, fname):
-    plt.scatter(x, y, c=colors)
-    m, b = np.polyfit(x, y, 1)
-    plt.plot(x, m * np.array(x) + b)
+def make_plot(
+    x,
+    y,
+    xlabel,
+    ylabel,
+    fname,
+    fit=Fit.Linear
+):
+    if fit is None:
+        plt.scatter(x, y, c=colors)
+        m, b = np.polyfit(x, y, 1)
+        r = np.corrcoef(x, y)[0, 1]
+        r2 = r * r
+        print("{}: m: {}, b: {}, R: {}, R^2: {}".format(fname, m, b, r, r2))
+    else:
+        plt.scatter(x, y, c=colors)
+        m, b = np.polyfit(x, y, 1)
+        r = np.corrcoef(x, y)[0, 1]
+        r2 = r * r
+        print("{}: m: {}, b: {}, R: {}, R^2: {}".format(fname, m, b, r, r2))
+        xlim = plt.gca().get_xlim()
+        ylim = plt.gca().get_ylim()
+        plt.plot(x, m * np.array(x) + b, c="black")
+        plt.gca().set_xlim(xlim)
+        plt.gca().set_ylim(ylim)
+
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.title(title)
+    plt.title(ylabel + " vs. " + xlabel)
     legend = plt.legend(handles=handles, loc="lower right", title="Rank")
     legend.get_frame().set_edgecolor("black")
     plt.savefig(fname, dpi=200)
@@ -100,8 +133,16 @@ make_plot(
     tr,
     "APM (Attack Per Minute)",
     "TR",
-    "TR vs Attack Per Minute",
-    "apmvstr.png"
+    "apmvstr.png",
+    None
+)
+
+make_plot(
+    np.log(apm),
+    tr,
+    "ln(APM) (Attack Per Minute)",
+    "TR",
+    "lnapmvstr.png",
 )
 
 make_plot(
@@ -109,8 +150,16 @@ make_plot(
     tr,
     "PPS (Pieces Per Second)",
     "TR",
-    "TR vs Attack Per Minute",
-    "ppsvstr.png"
+    "ppsvstr.png",
+    None
+)
+
+make_plot(
+    np.log(pps),
+    tr,
+    "ln(PPS) (Pieces Per Second)",
+    "TR",
+    "lnppsvstr.png",
 )
 
 make_plot(
@@ -118,8 +167,16 @@ make_plot(
     tr,
     "APP (Attack Per Piece)",
     "TR",
-    "TR vs Attack Per Piece",
-    "appvstr.png"
+    "trvsapp.png",
+    None
+)
+
+make_plot(
+    np.log(app),
+    tr,
+    "ln(APP) (Attack Per Piece)",
+    "TR",
+    "trvslnapp.png",
 )
 
 make_plot(
@@ -127,7 +184,6 @@ make_plot(
     pps,
     "APM (Attack Per Minute)",
     "PPS",
-    "PPS vs Attack Per Minute",
     "ppvsapm.png"
 )
 
@@ -136,8 +192,8 @@ make_plot(
     tr,
     "Games Played",
     "TR",
-    "Games Played vs TR",
-    "gpvstr.png"
+    "gpvstr.png",
+    None,
 )
 
 make_plot(
@@ -145,17 +201,16 @@ make_plot(
     tr,
     "VS",
     "TR",
-    "VS vs TR",
-    "vsvstr.png"
+    "vsvstr.png",
+    None
 )
 
 make_plot(
-    vs,
+    np.log(vs),
     tr,
-    "VS",
+    "ln(VS)",
     "TR",
-    "VS vs TR",
-    "vsvstr.png"
+    "lnvsvstr.png"
 )
 
 make_plot(
@@ -163,8 +218,16 @@ make_plot(
     tr,
     "Win Loss Ratio",
     "TR",
-    "TR vs Win Loss Ratio",
-    "wlrvstr.png"
+    "wlrvstr.png",
+    None
+)
+
+make_plot(
+    wl,
+    np.log(tr),
+    "Win Loss Ratio",
+    "ln(TR)",
+    "wlrvslntr.png"
 )
 
 make_plot(
@@ -172,7 +235,6 @@ make_plot(
     apm,
     "VS",
     "APM (Attack Per Minute)",
-    "VS vs Attack Per Minute",
     "apmvsvs.png"
 )
 
@@ -181,7 +243,6 @@ make_plot(
     pps,
     "VS",
     "PPS (Pieces Per Second)",
-    "VS vs Pieces Per Second",
     "ppsvsvs.png"
 )
 
@@ -190,8 +251,8 @@ make_plot(
     tr,
     "Glicko",
     "TR",
-    "TR vs Glicko",
-    "trvsglicko.png"
+    "trvsglicko.png",
+    None
 )
 
 make_plot(
@@ -199,13 +260,12 @@ make_plot(
     glicko,
     "APM (Attack Per Minute)",
     "Glicko",
-    "Glicko vs APM",
     "glickovsapm.png"
 )
 
 plt.scatter(lbpos, tr, c=colors)
-m, b = np.polyfit(lbpos, tr, 1)
-plt.plot(lbpos, m * np.array(lbpos) + b)
+# m, b = np.polyfit(lbpos, tr, 1)
+# plt.plot(lbpos, m * np.array(lbpos) + b, c="black")
 plt.xlabel("Leaderboard Position")
 plt.ylabel("TR")
 plt.title("TR vs Leaderboard Position")
@@ -215,10 +275,9 @@ plt.gca().invert_xaxis()
 plt.savefig("trvslbpos.png", dpi=200)
 plt.close()
 
-
 plt.scatter(lbpos, glicko, c=colors)
-m, b = np.polyfit(lbpos, glicko, 1)
-plt.plot(lbpos, m * np.array(lbpos) + b)
+# m, b = np.polyfit(lbpos, glicko, 1)
+# plt.plot(lbpos, m * np.array(lbpos) + b, c="black")
 plt.xlabel("Leaderboard Position")
 plt.ylabel("Glicko")
 plt.title("Glicko vs Leaderboard Position")
