@@ -1,1 +1,7 @@
-*.png
+.latexrun.db
+.latexrun.db.lock
+*.aux
+*.fls
+*.log
+*.pdf
+*.gz

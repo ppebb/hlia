@@ -1,4 +1,5 @@
 import json
+import os
 from enum import Enum
 from typing import List
 import numpy as np
@@ -28,6 +29,8 @@ json_fd = open(r"./leaderboard.json", "r")
 json_data = json_fd.read()
 json_fd.close()
 decoded = Data(**json.loads(json_data))
+if not os.path.exists("./graphs"):
+    os.makedirs("./graphs")
 
 
 def collect(func):
@@ -143,7 +146,7 @@ def make_plot(
     plt.title(ylabel + " vs. " + xlabel)
     legend = plt.legend(handles=handles, loc="lower right", title="Rank")
     legend.get_frame().set_edgecolor("black")
-    plt.savefig(fname, dpi=200)
+    plt.savefig("./graphs/" + fname, dpi=200)
     plt.close()
 
 
