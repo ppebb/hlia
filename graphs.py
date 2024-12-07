@@ -83,13 +83,24 @@ lbpos = list(range(0, len(rd)))
 wl = []
 for i in range(0, len(gp)):
     wl.append(gw[i]/gp[i])
+
 app = []
 for i in range(0, len(apm)):
     aps = apm[i] / 60
     app.append(aps/pps[i])
 
+dss = []
+for i in range(0, len(apm)):
+    dss.append(vs[i]/100 - apm[i]/60)
+
 ranks = collect(lambda a: a["league"]["rank"])
 colors = collect(lambda a: color_from_rank(a["league"]["rank"]))
+
+cheese = []
+for i in range(0, len(dss)):
+    dsp = dss[i] / pps[i]
+    cheese.append(
+        (dsp * 150) + ((vs[i]/apm[i] - 2) * 50) + (0.6 - app[i]) * 125)
 
 handles = []
 for key in rank_to_color:
@@ -105,9 +116,16 @@ def make_plot(
     fname,
     fit=Fit.Linear,
     invert_xaxis=False,
+    filtered_colors=None,
 ):
+    real_colors = None
+    if filtered_colors is not None:
+        real_colors = filtered_colors
+    else:
+        real_colors = colors
+
     if fit is None:
-        plt.scatter(x, y, c=colors)
+        plt.scatter(x, y, c=real_colors)
         m, b = np.polyfit(x, y, 1)
         r = np.corrcoef(x, y)[0, 1]
         r2 = r * r
@@ -120,7 +138,7 @@ def make_plot(
             .format(
                 fname, m, b, r, r2, meanx, meany, medx, medy))
     else:
-        plt.scatter(x, y, c=colors)
+        plt.scatter(x, y, c=real_colors)
         m, b = np.polyfit(x, y, 1)
         r = np.corrcoef(x, y)[0, 1]
         r2 = r * r
@@ -205,7 +223,7 @@ make_plot(
     apm,
     pps,
     "APM (Attack Per Minute)",
-    "PPS",
+    "PPS (Pieces Per Second)",
     "ppvsapm.png"
 )
 
@@ -301,4 +319,58 @@ make_plot(
     "Glicko",
     "glickovslbpos.png",
     invert_xaxis=True
+)
+
+make_plot(
+    dss,
+    tr,
+    "DSS (Downstack Per Second)",
+    "TR",
+    "trvsdss.png",
+    None
+)
+
+# make_plot(
+#     np.log(dss),
+#     tr,
+#     "DSS (Downstack Per Second)",
+#     "TR",
+#     "trvslndss.png",
+#     None
+# )
+
+
+make_plot(
+    cheese,
+    tr,
+    "Cheese Index",
+    "TR",
+    "trvscheese.png",
+)
+
+filtered_data = list()
+for user in decoded.data:
+    if user["league"]["gamesplayed"] <= 500:
+        filtered_data.append(user)
+
+filtered_tr = list()
+for user in filtered_data:
+    filtered_tr.append(user["league"]["tr"])
+
+filtered_games_played = list()
+for user in filtered_data:
+    filtered_games_played.append(user["league"]["gamesplayed"])
+
+filtered_colors = list()
+for user in filtered_data:
+    filtered_colors.append(color_from_rank(user["league"]["rank"]))
+
+make_plot(
+    filtered_games_played,
+    filtered_tr,
+    "Games Played",
+    "TR",
+    "trvsgp-filtered.png",
+    None,
+    filtered_colors=filtered_colors
 )
